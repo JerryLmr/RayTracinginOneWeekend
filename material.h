@@ -4,6 +4,7 @@
 #include "rtweekend.h"
 
 #include "hittable_list.h"
+#include "texture.h"
 
 class hit_record;
 
@@ -18,7 +19,8 @@ class material {
 
 class lambertian: public material{
     public:
-        lambertian(const color& a) : albedo(a) {}
+        lambertian(const color& a) : albedo(make_shared<solid_color>(a)) {}
+        lambertian(shared_ptr<texture> a) : albedo(a) {}
 
         bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered) const override{
             auto scatter_direction = rec.normal + random_unit_vector();
@@ -28,11 +30,11 @@ class lambertian: public material{
                 scatter_direction = rec.normal;
 
             scattered = ray(rec.p, scatter_direction, r_in.time());
-            attenuation = albedo;
+            attenuation = albedo->value(rec.u,rec.v,rec.p);
             return true;
         }
     private:
-        color albedo;
+        shared_ptr<texture> albedo;
 };
 
 class metal : public material{
